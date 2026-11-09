@@ -5,7 +5,7 @@ using StreamJsonRpc;
 
 namespace Gatelet.Core;
 
-public sealed class GateletServer(string command, IConsole console)
+public sealed class GateletServer(string command, string shell, IConsole console)
 {
     private readonly string secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
 
@@ -36,7 +36,7 @@ public sealed class GateletServer(string command, IConsole console)
         try
         {
             using var stream = new NetworkStream(client, ownsSocket: true);
-            var service = new GateletService(command, secret);
+            var service = new GateletService(command, secret, shell);
             using var rpc = JsonRpc.Attach(stream, service);
             service.SetCallback(rpc.Attach<IGateletCallback>());
             await rpc.Completion;

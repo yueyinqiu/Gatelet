@@ -5,7 +5,7 @@ using CliWrap;
 namespace Gatelet.Core;
 
 /// <summary>Runs the fixed command once per invocation, streaming raw output to the client.</summary>
-public sealed class GateletService(string command, string secret) : IGatelet
+public sealed class GateletService(string command, string secret, string shell) : IGatelet
 {
     private readonly byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
     private IGateletCallback? callback;
@@ -25,8 +25,9 @@ public sealed class GateletService(string command, string secret) : IGatelet
         var stdErrPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
             PumpAsync(stream, callback.OnStderr, pipeCancellationToken));
 
-        var result = await Cli.Wrap("sh")
-            .WithArguments(["-c", command])
+        var shellParts = shell.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var result = await Cli.Wrap(shellParts[0])
+            .WithArguments(shellParts.Skip(1).Append(command))
             .WithValidation(CommandResultValidation.None)
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)

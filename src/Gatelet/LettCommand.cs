@@ -18,9 +18,12 @@ public partial class LettCommand : ICommand
     [CommandOption("port", 'p', Description = "Port to listen on; 0 = random.", EnvironmentVariable = "GATELET_LETT_PORT")]
     public int Port { get; set; } = 0;
 
+    [CommandOption("shell", 's', Description = "Shell to run the command with; the command is appended as the last argument.", EnvironmentVariable = "GATELET_SHELL")]
+    public string Shell { get; set; } = "sh -c";
+
     public async ValueTask ExecuteAsync(IConsole console)
     {
         var endpoint = new TcpGateletEndpoint(Host, Port);
-        await new GateletServer(Command, console).RunAsync(endpoint, console.RegisterCancellationHandler());
+        await new GateletServer(Command, Shell, console).RunAsync(endpoint, console.RegisterCancellationHandler());
     }
 }

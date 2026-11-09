@@ -18,12 +18,15 @@ public partial class LetuCommand : ICommand
     [CommandOption("path", 'p', Description = "Socket name (relative to --directory) or absolute path; omit for a random name.", EnvironmentVariable = "GATELET_LETU_PATH")]
     public string? SocketPath { get; set; }
 
+    [CommandOption("shell", 's', Description = "Shell to run the command with; the command is appended as the last argument.", EnvironmentVariable = "GATELET_SHELL")]
+    public string Shell { get; set; } = "sh -c";
+
     public async ValueTask ExecuteAsync(IConsole console)
     {
         var endpoint = SocketPath is null
             ? UnixGateletEndpoint.RandomIn(SocketDirectory)
             : new UnixGateletEndpoint(Path.Combine(SocketDirectory, SocketPath));
 
-        await new GateletServer(Command, console).RunAsync(endpoint, console.RegisterCancellationHandler());
+        await new GateletServer(Command, Shell, console).RunAsync(endpoint, console.RegisterCancellationHandler());
     }
 }
