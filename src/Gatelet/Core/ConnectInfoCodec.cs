@@ -6,22 +6,20 @@ namespace Gatelet.Core;
 /// <summary>Encodes/decodes gate connection info into a single copy-pasteable token.</summary>
 public static class ConnectInfoCodec
 {
-    public static string Encode(ConnectInfo info)
-    {
-        var json = JsonSerializer.Serialize(info);
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(json))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
+    public static string Encode(ConnectInfo info) =>
+        Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(info)));
 
-    public static ConnectInfo Decode(string token)
+    /// <summary>Decodes a token, or returns null when it is not a valid gate token.</summary>
+    public static ConnectInfo? Decode(string token)
     {
-        var s = token.Replace('-', '+').Replace('_', '/');
-        var pad = (s.Length % 4) switch { 2 => "==", 3 => "=", _ => "" };
-
-        var json = Encoding.UTF8.GetString(Convert.FromBase64String(s + pad));
-        return JsonSerializer.Deserialize<ConnectInfo>(json)
-            ?? throw new InvalidDataException("invalid gate run token");
+        try
+        {
+            var json = Encoding.UTF8.GetString(Convert.FromBase64String(token));
+            return JsonSerializer.Deserialize<ConnectInfo>(json);
+        }
+        catch (Exception e) when (e is FormatException or JsonException or NotSupportedException)
+        {
+            return null;
+        }
     }
 }

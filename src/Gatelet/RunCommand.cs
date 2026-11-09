@@ -13,7 +13,9 @@ public partial class RunCommand : ICommand
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var info = ConnectInfoCodec.Decode(Token);
+        var info = ConnectInfoCodec.Decode(Token)
+            ?? throw new CommandException("invalid gate token");
+
         await new GateletClient(console).RunAsync(info, console.RegisterCancellationHandler());
     }
 }
