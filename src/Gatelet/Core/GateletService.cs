@@ -5,35 +5,28 @@ using CliWrap;
 namespace Gatelet.Core;
 
 /// <summary>Runs the fixed command once per invocation, streaming raw output to the client.</summary>
-public sealed class GateletService : IGatelet
+public sealed class GateletService(string command, string secret) : IGatelet
 {
-    private readonly string _command;
-    private readonly byte[] _secret;
-    private IGateletCallback? _callback;
+    private readonly byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
+    private IGateletCallback? callback;
 
-    public GateletService(string command, string secret)
-    {
-        _command = command;
-        _secret = Encoding.UTF8.GetBytes(secret);
-    }
-
-    public void SetCallback(IGateletCallback callback) => _callback = callback;
+    public void SetCallback(IGateletCallback callback) => this.callback = callback;
 
     public async Task<int> RunAsync(string secret, CancellationToken cancellationToken)
     {
-        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), _secret))
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), secretBytes))
             throw new UnauthorizedAccessException("invalid token");
 
-        if (_callback is null)
+        if (callback is null)
             throw new InvalidOperationException("client callback is not available");
 
         var stdOutPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
-            PumpAsync(stream, _callback.OnStdout, pipeCancellationToken));
+            PumpAsync(stream, callback.OnStdout, pipeCancellationToken));
         var stdErrPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
-            PumpAsync(stream, _callback.OnStderr, pipeCancellationToken));
+            PumpAsync(stream, callback.OnStderr, pipeCancellationToken));
 
         var result = await Cli.Wrap("sh")
-            .WithArguments(["-c", _command])
+            .WithArguments(["-c", command])
             .WithValidation(CommandResultValidation.None)
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)
