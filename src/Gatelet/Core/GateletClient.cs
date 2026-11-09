@@ -16,7 +16,7 @@ public sealed class GateletClient
     {
         var endpoint = info switch
         {
-            UnixConnectInfo u => (GateletEndpoint)new UnixGateletEndpoint(u.Path),
+            UnixConnectInfo u => (IGateletEndpoint)new UnixGateletEndpoint(u.Path),
             TcpConnectInfo t => new TcpGateletEndpoint(t.Host, t.Port),
             _ => throw new InvalidOperationException($"unsupported connect info: {info.GetType().Name}"),
         };

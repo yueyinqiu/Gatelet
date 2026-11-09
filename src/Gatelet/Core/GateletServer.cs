@@ -17,7 +17,7 @@ public sealed class GateletServer
         _console = console;
     }
 
-    public async Task RunAsync(GateletEndpoint endpoint, CancellationToken cancellationToken)
+    public async Task RunAsync(IGateletEndpoint endpoint, CancellationToken cancellationToken)
     {
         using var socket = endpoint.Listen();
         var token = ConnectInfoCodec.Encode(endpoint.ToConnectInfo(_secret));
