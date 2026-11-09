@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
+using Gatelet.Core;
 
-namespace Gatelet.Core;
+namespace Gatelet.Tcp;
 
 public sealed class TcpGateletEndpoint : GateletEndpoint
 {

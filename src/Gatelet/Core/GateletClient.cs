@@ -1,5 +1,7 @@
 using System.Net.Sockets;
 using CliFx.Infrastructure;
+using Gatelet.Tcp;
+using Gatelet.Unix;
 using StreamJsonRpc;
 
 namespace Gatelet.Core;

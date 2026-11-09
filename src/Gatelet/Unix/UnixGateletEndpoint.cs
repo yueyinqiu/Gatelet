@@ -1,7 +1,8 @@
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using Gatelet.Core;
 
-namespace Gatelet.Core;
+namespace Gatelet.Unix;
 
 public sealed class UnixGateletEndpoint(string path) : GateletEndpoint
 {

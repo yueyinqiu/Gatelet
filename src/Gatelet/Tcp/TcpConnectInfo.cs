@@ -1,4 +1,6 @@
-namespace Gatelet.Core;
+using Gatelet.Core;
+
+namespace Gatelet.Tcp;
 
 public sealed class TcpConnectInfo : ConnectInfo
 {

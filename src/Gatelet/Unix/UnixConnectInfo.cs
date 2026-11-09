@@ -1,4 +1,6 @@
-namespace Gatelet.Core;
+using Gatelet.Core;
+
+namespace Gatelet.Unix;
 
 public sealed class UnixConnectInfo : ConnectInfo
 {

@@ -2,6 +2,7 @@ using CliFx;
 using CliFx.Binding;
 using CliFx.Infrastructure;
 using Gatelet.Core;
+using Gatelet.Tcp;
 
 namespace Gatelet;
 

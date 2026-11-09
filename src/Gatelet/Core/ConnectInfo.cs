@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using Gatelet.Tcp;
+using Gatelet.Unix;
 
 namespace Gatelet.Core;
 
