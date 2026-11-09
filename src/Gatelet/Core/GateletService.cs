@@ -19,7 +19,7 @@ public sealed class GateletService : IGatelet
 
     public void SetCallback(IGateletCallback callback) => _callback = callback;
 
-    public async Task<int> RunAsync(string token, CancellationToken ct)
+    public async Task<int> RunAsync(string token, CancellationToken cancellationToken)
     {
         if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(token), _token))
             throw new UnauthorizedAccessException("invalid or missing token");
@@ -27,25 +27,27 @@ public sealed class GateletService : IGatelet
         if (_callback is null)
             throw new InvalidOperationException("client callback is not available");
 
-        var stdOutPipe = PipeTarget.Create((stream, streamCt) => PumpAsync(stream, _callback.OnStdout, streamCt));
-        var stdErrPipe = PipeTarget.Create((stream, streamCt) => PumpAsync(stream, _callback.OnStderr, streamCt));
+        var stdOutPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
+            PumpAsync(stream, _callback.OnStdout, pipeCancellationToken));
+        var stdErrPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
+            PumpAsync(stream, _callback.OnStderr, pipeCancellationToken));
 
         var result = await Cli.Wrap("sh")
             .WithArguments(["-c", _command])
             .WithValidation(CommandResultValidation.None)
             .WithStandardOutputPipe(stdOutPipe)
             .WithStandardErrorPipe(stdErrPipe)
-            .ExecuteAsync(ct);
+            .ExecuteAsync(cancellationToken);
 
         return result.ExitCode;
     }
 
-    private static async Task PumpAsync(Stream stream, Func<string, Task> write, CancellationToken ct)
+    private static async Task PumpAsync(Stream stream, Func<string, Task> write, CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(stream);
         var buffer = new char[8192];
         int read;
-        while ((read = await reader.ReadAsync(buffer, ct)) > 0)
+        while ((read = await reader.ReadAsync(buffer, cancellationToken)) > 0)
             await write(new string(buffer, 0, read));
     }
 }

@@ -9,25 +9,19 @@ namespace Gatelet;
 public partial class LetuCommand : ICommand
 {
     [CommandParameter(0, Description = "Command to run on each trigger.")]
-    public string? Command { get; set; }
+    public required string Command { get; set; }
 
-    [CommandOption("directory", Description = "Directory for the socket; defaults to the current directory.")]
-    public string SocketDir { get; set; } = Directory.GetCurrentDirectory();
+    [CommandOption("directory", Description = "Directory for the socket.")]
+    public string SocketDirectory { get; set; } = Directory.GetCurrentDirectory();
 
-    [CommandOption("path", Description = "Socket name (relative to --directory) or absolute path; default: random.")]
+    [CommandOption("path", Description = "Socket name (relative to --directory) or absolute path; omit for a random name.")]
     public string? SocketPath { get; set; }
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        if (string.IsNullOrWhiteSpace(Command))
-        {
-            console.Error.WriteLine("error: provide a command to let through, e.g. gate letu 'make build'");
-            return;
-        }
-
         var endpoint = SocketPath is null
-            ? UnixGateletEndpoint.RandomIn(SocketDir)
-            : new UnixGateletEndpoint(Path.Combine(SocketDir, SocketPath));
+            ? UnixGateletEndpoint.RandomIn(SocketDirectory)
+            : new UnixGateletEndpoint(Path.Combine(SocketDirectory, SocketPath));
 
         await new GateletServer(Command, console).RunAsync(endpoint, console.RegisterCancellationHandler());
     }

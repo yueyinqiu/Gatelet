@@ -10,7 +10,7 @@ public sealed class GateletClient
 
     public GateletClient(IConsole console) => _console = console;
 
-    public async Task RunAsync(ConnectInfo info, CancellationToken ct)
+    public async Task RunAsync(ConnectInfo info, CancellationToken cancellationToken)
     {
         var endpoint = info.Transport switch
         {
@@ -26,7 +26,7 @@ public sealed class GateletClient
         using var rpc = JsonRpc.Attach(stream, callback);
         var gatelet = rpc.Attach<IGatelet>();
 
-        var exitCode = await gatelet.RunAsync(info.Token, ct);
+        var exitCode = await gatelet.RunAsync(info.Token, cancellationToken);
 
         _console.Error.Write(callback.StderrEndsWithNewline ? $"{exitCode}\n" : $"\n{exitCode}\n");
     }

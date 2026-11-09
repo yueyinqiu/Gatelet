@@ -17,18 +17,18 @@ public sealed class GateletServer
         _console = console;
     }
 
-    public async Task RunAsync(GateletEndpoint endpoint, CancellationToken ct)
+    public async Task RunAsync(GateletEndpoint endpoint, CancellationToken cancellationToken)
     {
         using var socket = endpoint.Listen();
         var blob = ConnectInfoCodec.Encode(endpoint.ToConnectInfo(_token));
         _console.Output.WriteLine($"gate run {blob}");
 
-        while (!ct.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested)
         {
             Socket client;
             try
             {
-                client = await socket.AcceptAsync(ct);
+                client = await socket.AcceptAsync(cancellationToken);
             }
             catch (OperationCanceledException)
             {
