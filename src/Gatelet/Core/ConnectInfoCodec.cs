@@ -17,7 +17,7 @@ public static class ConnectInfoCodec
             var json = Encoding.UTF8.GetString(Convert.FromBase64String(token));
             return JsonSerializer.Deserialize<ConnectInfo>(json);
         }
-        catch (Exception e) when (e is FormatException or JsonException or NotSupportedException)
+        catch (Exception e) when (e is FormatException or JsonException)
         {
             return null;
         }

@@ -2,12 +2,10 @@ using CliFx.Infrastructure;
 
 namespace Gatelet.Core;
 
-/// <summary>Streams remote command output to the console, tracking stderr's trailing newline.</summary>
+/// <summary>Streams remote command output to the console.</summary>
 public sealed class ConsoleCallback : IGateletCallback
 {
     private readonly IConsole _console;
-
-    public bool StderrEndsWithNewline { get; private set; } = true;
 
     public ConsoleCallback(IConsole console) => _console = console;
 
@@ -20,8 +18,6 @@ public sealed class ConsoleCallback : IGateletCallback
     public Task OnStderr(string text)
     {
         _console.Error.Write(text);
-        if (text.Length > 0)
-            StderrEndsWithNewline = text[^1] == '\n';
         return Task.CompletedTask;
     }
 }

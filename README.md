@@ -51,8 +51,9 @@ stderr stream back to you).
 
 - the gated command's stdout goes to `gate run`'s stdout;
 - its stderr goes to `gate run`'s stderr;
-- the gated command's exit code is written as a bare number on the final line
-  of `gate run`'s stderr;
+- the gated command's stderr is streamed verbatim, then `gate run` appends a
+  fixed suffix `<newline><exit-code><newline>` — so the command's exact stderr
+  is recoverable and the exit code is always the final line;
 - `gate run`'s own exit code is `0` only when it reached the gate and the
   command ran; any non-zero means `gate` itself failed (e.g. connect/token).
 

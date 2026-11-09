@@ -28,6 +28,8 @@ public sealed class GateletClient
 
         var exitCode = await gatelet.RunAsync(info.Secret, cancellationToken);
 
-        _console.Error.Write(callback.StderrEndsWithNewline ? $"{exitCode}\n" : $"\n{exitCode}\n");
+        // Always: command stderr verbatim + <NewLine><exitCode><NewLine>, so the
+        // boundary is deterministic and parsers can recover the exact stderr.
+        _console.Error.Write($"{Environment.NewLine}{exitCode}{Environment.NewLine}");
     }
 }
