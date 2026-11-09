@@ -7,5 +7,5 @@ public abstract class GateletEndpoint
 {
     public abstract Socket Listen();
     public abstract Socket Connect();
-    public abstract ConnectInfo ToConnectInfo(string token);
+    public abstract ConnectInfo ToConnectInfo(string secret);
 }

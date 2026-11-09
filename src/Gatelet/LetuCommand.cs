@@ -11,10 +11,10 @@ public partial class LetuCommand : ICommand
     [CommandParameter(0, Description = "Command to run on each trigger.")]
     public required string Command { get; set; }
 
-    [CommandOption("directory", Description = "Directory for the socket.")]
+    [CommandOption("directory", 'd', Description = "Directory for the socket.", EnvironmentVariable = "GATELET_LETU_DIRECTORY")]
     public string SocketDirectory { get; set; } = Directory.GetCurrentDirectory();
 
-    [CommandOption("path", Description = "Socket name (relative to --directory) or absolute path; omit for a random name.")]
+    [CommandOption("path", 'p', Description = "Socket name (relative to --directory) or absolute path; omit for a random name.", EnvironmentVariable = "GATELET_LETU_PATH")]
     public string? SocketPath { get; set; }
 
     public async ValueTask ExecuteAsync(IConsole console)

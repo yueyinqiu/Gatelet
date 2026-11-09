@@ -15,9 +15,9 @@ public static class ConnectInfoCodec
             .Replace('/', '_');
     }
 
-    public static ConnectInfo Decode(string blob)
+    public static ConnectInfo Decode(string token)
     {
-        var s = blob.Replace('-', '+').Replace('_', '/');
+        var s = token.Replace('-', '+').Replace('_', '/');
         var pad = (s.Length % 4) switch { 2 => "==", 3 => "=", _ => "" };
 
         var json = Encoding.UTF8.GetString(Convert.FromBase64String(s + pad));

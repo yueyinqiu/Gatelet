@@ -34,7 +34,7 @@ public sealed class TcpGateletEndpoint : GateletEndpoint
         return socket;
     }
 
-    public override ConnectInfo ToConnectInfo(string token) => new("tcp", null, _host, _actualPort, token);
+    public override ConnectInfo ToConnectInfo(string secret) => new("tcp", null, _host, _actualPort, secret);
 
     private static IPAddress Resolve(string host) =>
         host is "localhost" ? IPAddress.Loopback : IPAddress.Parse(host);

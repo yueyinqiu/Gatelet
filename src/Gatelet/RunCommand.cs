@@ -9,11 +9,11 @@ namespace Gatelet;
 public partial class RunCommand : ICommand
 {
     [CommandParameter(0, Description = "The gate token printed by the host.")]
-    public required string Blob { get; set; }
+    public required string Token { get; set; }
 
     public async ValueTask ExecuteAsync(IConsole console)
     {
-        var info = ConnectInfoCodec.Decode(Blob);
+        var info = ConnectInfoCodec.Decode(Token);
         await new GateletClient(console).RunAsync(info, console.RegisterCancellationHandler());
     }
 }

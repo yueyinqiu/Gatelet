@@ -8,21 +8,21 @@ namespace Gatelet.Core;
 public sealed class GateletService : IGatelet
 {
     private readonly string _command;
-    private readonly byte[] _token;
+    private readonly byte[] _secret;
     private IGateletCallback? _callback;
 
-    public GateletService(string command, string token)
+    public GateletService(string command, string secret)
     {
         _command = command;
-        _token = Encoding.UTF8.GetBytes(token);
+        _secret = Encoding.UTF8.GetBytes(secret);
     }
 
     public void SetCallback(IGateletCallback callback) => _callback = callback;
 
-    public async Task<int> RunAsync(string token, CancellationToken cancellationToken)
+    public async Task<int> RunAsync(string secret, CancellationToken cancellationToken)
     {
-        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(token), _token))
-            throw new UnauthorizedAccessException("invalid or missing token");
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), _secret))
+            throw new UnauthorizedAccessException("invalid token");
 
         if (_callback is null)
             throw new InvalidOperationException("client callback is not available");

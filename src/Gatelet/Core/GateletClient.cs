@@ -26,7 +26,7 @@ public sealed class GateletClient
         using var rpc = JsonRpc.Attach(stream, callback);
         var gatelet = rpc.Attach<IGatelet>();
 
-        var exitCode = await gatelet.RunAsync(info.Token, cancellationToken);
+        var exitCode = await gatelet.RunAsync(info.Secret, cancellationToken);
 
         _console.Error.Write(callback.StderrEndsWithNewline ? $"{exitCode}\n" : $"\n{exitCode}\n");
     }

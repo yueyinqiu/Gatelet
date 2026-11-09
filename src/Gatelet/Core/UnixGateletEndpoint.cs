@@ -26,7 +26,7 @@ public sealed class UnixGateletEndpoint(string path) : GateletEndpoint
         return socket;
     }
 
-    public override ConnectInfo ToConnectInfo(string token) => new("unix", path, null, 0, token);
+    public override ConnectInfo ToConnectInfo(string secret) => new("unix", path, null, 0, secret);
 
     private static void DeleteStale(string path)
     {
