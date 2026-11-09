@@ -1,21 +1,32 @@
-using CliFx;
-using CliFx.Binding;
-using CliFx.Infrastructure;
+using System.CommandLine;
 using Gatelet.Core;
 
 namespace Gatelet;
 
-[Command("run", Description = "Run the gated command through the gate (sandbox side).")]
-public partial class RunCommand : ICommand
+public static class RunCommand
 {
-    [CommandParameter(0, Description = "The gate token printed by the host.")]
-    public required string Token { get; set; }
-
-    public async ValueTask ExecuteAsync(IConsole console)
+    public static Command Create()
     {
-        var info = ConnectInfoCodec.Decode(Token)
-            ?? throw new CommandException("invalid gate token");
+        var token = new Argument<string>("token");
+        token.Description = "The gate token printed by the host.";
 
-        await new GateletClient(console).RunAsync(info, console.RegisterCancellationHandler());
+        var cmd = new Command("run", "Run the gated command through the gate.");
+        cmd.Add(token);
+
+        cmd.SetAction(async (result, cancellationToken) =>
+        {
+            var value = result.GetValue(token) ?? "";
+            var info = ConnectInfoCodec.Decode(value);
+            if (info is null)
+            {
+                Console.Error.WriteLine("invalid gate token");
+                return 1;
+            }
+
+            await new GateletClient().RunAsync(info, cancellationToken);
+            return 0;
+        });
+
+        return cmd;
     }
 }

@@ -1,32 +1,50 @@
-using CliFx;
-using CliFx.Binding;
-using CliFx.Infrastructure;
+using System.CommandLine;
 using Gatelet.Core;
 using Gatelet.Unix;
 
 namespace Gatelet;
 
-[Command("letu", Description = "Let a command through via a Unix socket (host side).")]
-public partial class LetuCommand : ICommand
+public static class LetuCommand
 {
-    [CommandParameter(0, Description = "Command to run on each trigger.")]
-    public required string Command { get; set; }
-
-    [CommandOption("directory", 'd', Description = "Directory for the socket.", EnvironmentVariable = "GATELET_LETU_DIRECTORY")]
-    public string SocketDirectory { get; set; } = Directory.GetCurrentDirectory();
-
-    [CommandOption("path", 'p', Description = "Socket name (relative to --directory) or absolute path; omit for a random name.", EnvironmentVariable = "GATELET_LETU_PATH")]
-    public string? SocketPath { get; set; }
-
-    [CommandOption("shell", 's', Description = "Shell to run the command with; the command is appended as the last argument.", EnvironmentVariable = "GATELET_SHELL")]
-    public string Shell { get; set; } = "sh -c";
-
-    public async ValueTask ExecuteAsync(IConsole console)
+    public static Command Create()
     {
-        var endpoint = SocketPath is null
-            ? UnixGateletEndpoint.RandomIn(SocketDirectory)
-            : new UnixGateletEndpoint(Path.Combine(SocketDirectory, SocketPath));
+        var command = new Argument<string[]>("command");
+        command.Description = "Command to run on each trigger.";
 
-        await new GateletServer(Command, Shell, console).RunAsync(endpoint, console.RegisterCancellationHandler());
+        var directory = new Option<string?>("--directory", ["-d"]);
+        directory.Description = "Directory for the socket.";
+
+        var path = new Option<string?>("--path", ["-p"]);
+        path.Description = "Socket name (relative to --directory) or absolute path; omit for a random name.";
+
+        var cmd = new Command("letu", "Let a command through via a Unix socket.");
+        cmd.Add(command);
+        cmd.Add(directory);
+        cmd.Add(path);
+
+        cmd.SetAction(async (result, cancellationToken) =>
+        {
+            var argv = result.GetValue(command) ?? [];
+            if (argv.Length == 0)
+            {
+                Console.Error.WriteLine("error: provide a command to let through");
+                return 1;
+            }
+
+            var dir = result.GetValue(directory)
+                ?? Environment.GetEnvironmentVariable("GATELET_LETU_DIRECTORY")
+                ?? Directory.GetCurrentDirectory();
+
+            var p = result.GetValue(path) ?? Environment.GetEnvironmentVariable("GATELET_LETU_PATH");
+
+            var endpoint = p is null
+                ? UnixGateletEndpoint.RandomIn(dir)
+                : new UnixGateletEndpoint(Path.Combine(dir, p));
+
+            await new GateletServer(argv).RunAsync(endpoint, cancellationToken);
+            return 0;
+        });
+
+        return cmd;
     }
 }

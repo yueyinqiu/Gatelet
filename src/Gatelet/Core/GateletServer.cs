@@ -1,11 +1,10 @@
 using System.Net.Sockets;
 using System.Security.Cryptography;
-using CliFx.Infrastructure;
 using StreamJsonRpc;
 
 namespace Gatelet.Core;
 
-public sealed class GateletServer(string command, string shell, IConsole console)
+public sealed class GateletServer(IReadOnlyList<string> command)
 {
     private readonly string secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(16));
 
@@ -13,7 +12,7 @@ public sealed class GateletServer(string command, string shell, IConsole console
     {
         using var socket = endpoint.Listen();
         var token = ConnectInfoCodec.Encode(endpoint.ToConnectInfo(secret));
-        console.Output.WriteLine($"gate run {token}");
+        Console.WriteLine($"gate run {token}");
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -36,7 +35,7 @@ public sealed class GateletServer(string command, string shell, IConsole console
         try
         {
             using var stream = new NetworkStream(client, ownsSocket: true);
-            var service = new GateletService(command, secret, shell);
+            var service = new GateletService(command, secret);
             using var rpc = JsonRpc.Attach(stream, service);
             service.SetCallback(rpc.Attach<IGateletCallback>());
             await rpc.Completion;
