@@ -12,11 +12,11 @@ public sealed class GateletClient
 
     public async Task RunAsync(ConnectInfo info, CancellationToken cancellationToken)
     {
-        var endpoint = info.Transport switch
+        var endpoint = info switch
         {
-            "unix" => (GateletEndpoint)new UnixGateletEndpoint(info.Path!),
-            "tcp" => new TcpGateletEndpoint(info.Host!, info.Port),
-            _ => throw new InvalidOperationException($"unknown transport '{info.Transport}'"),
+            UnixConnectInfo u => (GateletEndpoint)new UnixGateletEndpoint(u.Path),
+            TcpConnectInfo t => new TcpGateletEndpoint(t.Host, t.Port),
+            _ => throw new InvalidOperationException($"unsupported connect info: {info.GetType().Name}"),
         };
 
         using var socket = endpoint.Connect();
