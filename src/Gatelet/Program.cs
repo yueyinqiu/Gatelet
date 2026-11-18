@@ -8,4 +8,4 @@ var root = new RootCommand("gate")
     RunCommand.Create()
 };
 
-return await root.Parse(args).InvokeAsync(null);
+return await root.Parse(args).InvokeAsync();

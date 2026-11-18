@@ -7,7 +7,7 @@ public static class RunCommand
 {
     public static Command Create()
     {
-        var token = new Argument<string>("token")
+        var token = new Argument<string?>("token")
         {
             Description = "The gate token printed by the host."
         };

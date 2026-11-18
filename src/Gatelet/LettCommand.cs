@@ -8,7 +8,7 @@ public static class LettCommand
 {
     public static Command Create()
     {
-        var command = new Argument<string[]>("command")
+        var command = new Argument<string[]?>("command")
         {
             Description = "Command to run on each trigger."
         };
