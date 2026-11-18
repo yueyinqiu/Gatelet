@@ -7,11 +7,15 @@ public static class RunCommand
 {
     public static Command Create()
     {
-        var token = new Argument<string>("token");
-        token.Description = "The gate token printed by the host.";
+        var token = new Argument<string>("token")
+        {
+            Description = "The gate token printed by the host."
+        };
 
-        var cmd = new Command("run", "Run the gated command through the gate.");
-        cmd.Add(token);
+        var cmd = new Command("run", "Run the gated command through the gate.")
+        {
+            token
+        };
 
         cmd.SetAction(async (result, cancellationToken) =>
         {

@@ -8,19 +8,27 @@ public static class LetuCommand
 {
     public static Command Create()
     {
-        var command = new Argument<string[]>("command");
-        command.Description = "Command to run on each trigger.";
+        var command = new Argument<string[]>("command")
+        {
+            Description = "Command to run on each trigger."
+        };
 
-        var directory = new Option<string?>("--directory", ["-d"]);
-        directory.Description = "Directory for the socket.";
+        var directory = new Option<string?>("--directory", ["-d"])
+        {
+            Description = "Directory for the socket."
+        };
 
-        var path = new Option<string?>("--path", ["-p"]);
-        path.Description = "Socket name (relative to --directory) or absolute path; omit for a random name.";
+        var path = new Option<string?>("--path", ["-p"])
+        {
+            Description = "Socket name (relative to --directory) or absolute path; omit for a random name."
+        };
 
-        var cmd = new Command("letu", "Let a command through via a Unix socket.");
-        cmd.Add(command);
-        cmd.Add(directory);
-        cmd.Add(path);
+        var cmd = new Command("letu", "Let a command through via a Unix socket.")
+        {
+            command,
+            directory,
+            path
+        };
 
         cmd.SetAction(async (result, cancellationToken) =>
         {

@@ -8,19 +8,27 @@ public static class LettCommand
 {
     public static Command Create()
     {
-        var command = new Argument<string[]>("command");
-        command.Description = "Command to run on each trigger.";
+        var command = new Argument<string[]>("command")
+        {
+            Description = "Command to run on each trigger."
+        };
 
-        var host = new Option<string?>("--host", ["-H"]);
-        host.Description = "Host to listen on.";
+        var host = new Option<string?>("--host", ["-H"])
+        {
+            Description = "Host to listen on."
+        };
 
-        var port = new Option<int?>("--port", ["-p"]);
-        port.Description = "Port to listen on; 0 = random.";
+        var port = new Option<int?>("--port", ["-p"])
+        {
+            Description = "Port to listen on; 0 = random."
+        };
 
-        var cmd = new Command("lett", "Let a command through via TCP.");
-        cmd.Add(command);
-        cmd.Add(host);
-        cmd.Add(port);
+        var cmd = new Command("lett", "Let a command through via TCP.")
+        {
+            command,
+            host,
+            port
+        };
 
         cmd.SetAction(async (result, cancellationToken) =>
         {
