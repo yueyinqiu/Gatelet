@@ -2,57 +2,58 @@ using System.CommandLine;
 using Gatelet.Core;
 using Gatelet.Unix;
 
-namespace Gatelet;
-
-public static class LetuCommand
+namespace Gatelet
 {
-    public static Command Create()
+    public static class LetuCommand
     {
-        var command = new Argument<string[]?>("command")
+        public static Command Create()
         {
-            Description = "Command to run on each trigger."
-        };
-
-        var directory = new Option<string?>("--directory", ["-d"])
-        {
-            Description = "Directory for the socket."
-        };
-
-        var path = new Option<string?>("--path", ["-p"])
-        {
-            Description = "Socket name (relative to --directory) or absolute path; omit for a random name."
-        };
-
-        var cmd = new Command("letu", "Let a command through via a Unix socket.")
-        {
-            command,
-            directory,
-            path
-        };
-
-        cmd.SetAction(async (result, cancellationToken) =>
-        {
-            var argv = result.GetValue(command) ?? [];
-            if (argv.Length == 0)
+            var command = new Argument<string[]?>("command")
             {
-                Console.Error.WriteLine("error: provide a command to let through");
-                return 1;
-            }
+                Description = "Command to run on each trigger."
+            };
 
-            var dir = result.GetValue(directory)
-                ?? Environment.GetEnvironmentVariable("GATELET_LETU_DIRECTORY")
-                ?? Directory.GetCurrentDirectory();
+            var directory = new Option<string?>("--directory", ["-d"])
+            {
+                Description = "Directory for the socket."
+            };
 
-            var p = result.GetValue(path) ?? Environment.GetEnvironmentVariable("GATELET_LETU_PATH");
+            var path = new Option<string?>("--path", ["-p"])
+            {
+                Description = "Socket name (relative to --directory) or absolute path; omit for a random name."
+            };
 
-            var endpoint = p is null
-                ? UnixGateletEndpoint.RandomIn(dir)
-                : new UnixGateletEndpoint(Path.Combine(dir, p));
+            var cmd = new Command("letu", "Let a command through via a Unix socket.")
+            {
+                command,
+                directory,
+                path
+            };
 
-            await new GateletServer(argv).RunAsync(endpoint, cancellationToken);
-            return 0;
-        });
+            cmd.SetAction(async (result, cancellationToken) =>
+            {
+                var argv = result.GetValue(command) ?? [];
+                if (argv.Length == 0)
+                {
+                    Console.Error.WriteLine("error: provide a command to let through");
+                    return 1;
+                }
 
-        return cmd;
+                var dir = result.GetValue(directory)
+                    ?? Environment.GetEnvironmentVariable("GATELET_LETU_DIRECTORY")
+                    ?? Directory.GetCurrentDirectory();
+
+                var p = result.GetValue(path) ?? Environment.GetEnvironmentVariable("GATELET_LETU_PATH");
+
+                var endpoint = p is null
+                    ? UnixGateletEndpoint.RandomIn(dir)
+                    : new UnixGateletEndpoint(Path.Combine(dir, p));
+
+                await new GateletServer(argv).RunAsync(endpoint, cancellationToken);
+                return 0;
+            });
+
+            return cmd;
+        }
     }
 }

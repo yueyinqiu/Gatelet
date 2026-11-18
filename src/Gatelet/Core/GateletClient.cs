@@ -3,28 +3,29 @@ using Gatelet.Tcp;
 using Gatelet.Unix;
 using StreamJsonRpc;
 
-namespace Gatelet.Core;
-
-public sealed class GateletClient
+namespace Gatelet.Core
 {
-    public async Task RunAsync(ConnectInfo info, CancellationToken cancellationToken)
+    public sealed class GateletClient
     {
-        var endpoint = info switch
+        public async Task RunAsync(ConnectInfo info, CancellationToken cancellationToken)
         {
-            UnixConnectInfo u => (IGateletEndpoint)new UnixGateletEndpoint(u.Path),
-            TcpConnectInfo t => new TcpGateletEndpoint(t.Host, t.Port),
-            _ => throw new InvalidOperationException($"unsupported connect info: {info.GetType().Name}"),
-        };
+            var endpoint = info switch
+            {
+                UnixConnectInfo u => (IGateletEndpoint)new UnixGateletEndpoint(u.Path),
+                TcpConnectInfo t => new TcpGateletEndpoint(t.Host, t.Port),
+                _ => throw new InvalidOperationException($"unsupported connect info: {info.GetType().Name}"),
+            };
 
-        using var socket = endpoint.Connect();
-        using var stream = new NetworkStream(socket, ownsSocket: true);
+            using var socket = endpoint.Connect();
+            using var stream = new NetworkStream(socket, ownsSocket: true);
 
-        var callback = new ConsoleCallback();
-        using var rpc = JsonRpc.Attach(stream, callback);
-        var gatelet = rpc.Attach<IGatelet>();
+            var callback = new ConsoleCallback();
+            using var rpc = JsonRpc.Attach(stream, callback);
+            var gatelet = rpc.Attach<IGatelet>();
 
-        var exitCode = await gatelet.RunAsync(info.Secret, cancellationToken);
+            var exitCode = await gatelet.RunAsync(info.Secret, cancellationToken);
 
-        Console.Error.Write($"{Environment.NewLine}{exitCode}{Environment.NewLine}");
+            Console.Error.Write($"{Environment.NewLine}{exitCode}{Environment.NewLine}");
+        }
     }
 }

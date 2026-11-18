@@ -1,36 +1,37 @@
 using System.CommandLine;
 using Gatelet.Core;
 
-namespace Gatelet;
-
-public static class RunCommand
+namespace Gatelet
 {
-    public static Command Create()
+    public static class RunCommand
     {
-        var token = new Argument<string?>("token")
+        public static Command Create()
         {
-            Description = "The gate token printed by the host."
-        };
-
-        var cmd = new Command("run", "Run the gated command through the gate.")
-        {
-            token
-        };
-
-        cmd.SetAction(async (result, cancellationToken) =>
-        {
-            var value = result.GetValue(token) ?? "";
-            var info = ConnectInfoCodec.Decode(value);
-            if (info is null)
+            var token = new Argument<string?>("token")
             {
-                Console.Error.WriteLine("invalid gate token");
-                return 1;
-            }
+                Description = "The gate token printed by the host."
+            };
 
-            await new GateletClient().RunAsync(info, cancellationToken);
-            return 0;
-        });
+            var cmd = new Command("run", "Run the gated command through the gate.")
+            {
+                token
+            };
 
-        return cmd;
+            cmd.SetAction(async (result, cancellationToken) =>
+            {
+                var value = result.GetValue(token) ?? "";
+                var info = ConnectInfoCodec.Decode(value);
+                if (info is null)
+                {
+                    Console.Error.WriteLine("invalid gate token");
+                    return 1;
+                }
+
+                await new GateletClient().RunAsync(info, cancellationToken);
+                return 0;
+            });
+
+            return cmd;
+        }
     }
 }

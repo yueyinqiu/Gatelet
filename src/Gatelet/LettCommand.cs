@@ -2,55 +2,56 @@ using System.CommandLine;
 using Gatelet.Core;
 using Gatelet.Tcp;
 
-namespace Gatelet;
-
-public static class LettCommand
+namespace Gatelet
 {
-    public static Command Create()
+    public static class LettCommand
     {
-        var command = new Argument<string[]?>("command")
+        public static Command Create()
         {
-            Description = "Command to run on each trigger."
-        };
-
-        var host = new Option<string?>("--host", ["-H"])
-        {
-            Description = "Host to listen on."
-        };
-
-        var port = new Option<int?>("--port", ["-p"])
-        {
-            Description = "Port to listen on; 0 = random."
-        };
-
-        var cmd = new Command("lett", "Let a command through via TCP.")
-        {
-            command,
-            host,
-            port
-        };
-
-        cmd.SetAction(async (result, cancellationToken) =>
-        {
-            var argv = result.GetValue(command) ?? [];
-            if (argv.Length == 0)
+            var command = new Argument<string[]?>("command")
             {
-                Console.Error.WriteLine("error: provide a command to let through");
-                return 1;
-            }
+                Description = "Command to run on each trigger."
+            };
 
-            var hostName = result.GetValue(host)
-                ?? Environment.GetEnvironmentVariable("GATELET_LETT_HOST")
-                ?? "127.0.0.1";
+            var host = new Option<string?>("--host", ["-H"])
+            {
+                Description = "Host to listen on."
+            };
 
-            var portNumber = result.GetValue(port)
-                ?? int.Parse(Environment.GetEnvironmentVariable("GATELET_LETT_PORT") ?? "0");
+            var port = new Option<int?>("--port", ["-p"])
+            {
+                Description = "Port to listen on; 0 = random."
+            };
 
-            await new GateletServer(argv)
-                .RunAsync(new TcpGateletEndpoint(hostName, portNumber), cancellationToken);
-            return 0;
-        });
+            var cmd = new Command("lett", "Let a command through via TCP.")
+            {
+                command,
+                host,
+                port
+            };
 
-        return cmd;
+            cmd.SetAction(async (result, cancellationToken) =>
+            {
+                var argv = result.GetValue(command) ?? [];
+                if (argv.Length == 0)
+                {
+                    Console.Error.WriteLine("error: provide a command to let through");
+                    return 1;
+                }
+
+                var hostName = result.GetValue(host)
+                    ?? Environment.GetEnvironmentVariable("GATELET_LETT_HOST")
+                    ?? "127.0.0.1";
+
+                var portNumber = result.GetValue(port)
+                    ?? int.Parse(Environment.GetEnvironmentVariable("GATELET_LETT_PORT") ?? "0");
+
+                await new GateletServer(argv)
+                    .RunAsync(new TcpGateletEndpoint(hostName, portNumber), cancellationToken);
+                return 0;
+            });
+
+            return cmd;
+        }
     }
 }

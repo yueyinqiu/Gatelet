@@ -2,45 +2,46 @@ using System.Security.Cryptography;
 using System.Text;
 using CliWrap;
 
-namespace Gatelet.Core;
-
-/// <summary>Runs the fixed command once per invocation, streaming raw output to the client.</summary>
-public sealed class GateletService(IReadOnlyList<string> command, string secret) : IGatelet
+namespace Gatelet.Core
 {
-    private readonly byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
-    private IGateletCallback? callback;
-
-    public void SetCallback(IGateletCallback callback) => this.callback = callback;
-
-    public async Task<int> RunAsync(string secret, CancellationToken cancellationToken)
+    /// <summary>Runs the fixed command once per invocation, streaming raw output to the client.</summary>
+    public sealed class GateletService(IReadOnlyList<string> command, string secret) : IGatelet
     {
-        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), secretBytes))
-            throw new UnauthorizedAccessException("invalid token");
+        private readonly byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
+        private IGateletCallback? callback;
 
-        if (callback is null)
-            throw new InvalidOperationException("client callback is not available");
+        public void SetCallback(IGateletCallback callback) => this.callback = callback;
 
-        var stdOutPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
-            PumpAsync(stream, callback.OnStdout, pipeCancellationToken));
-        var stdErrPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
-            PumpAsync(stream, callback.OnStderr, pipeCancellationToken));
+        public async Task<int> RunAsync(string secret, CancellationToken cancellationToken)
+        {
+            if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), secretBytes))
+                throw new UnauthorizedAccessException("invalid token");
 
-        var result = await Cli.Wrap(command[0])
-            .WithArguments(command.Skip(1))
-            .WithValidation(CommandResultValidation.None)
-            .WithStandardOutputPipe(stdOutPipe)
-            .WithStandardErrorPipe(stdErrPipe)
-            .ExecuteAsync(cancellationToken);
+            if (callback is null)
+                throw new InvalidOperationException("client callback is not available");
 
-        return result.ExitCode;
-    }
+            var stdOutPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
+                PumpAsync(stream, callback.OnStdout, pipeCancellationToken));
+            var stdErrPipe = PipeTarget.Create((stream, pipeCancellationToken) =>
+                PumpAsync(stream, callback.OnStderr, pipeCancellationToken));
 
-    private static async Task PumpAsync(Stream stream, Func<string, Task> write, CancellationToken cancellationToken)
-    {
-        using var reader = new StreamReader(stream);
-        var buffer = new char[8192];
-        int read;
-        while ((read = await reader.ReadAsync(buffer, cancellationToken)) > 0)
-            await write(new string(buffer, 0, read));
+            var result = await Cli.Wrap(command[0])
+                .WithArguments(command.Skip(1))
+                .WithValidation(CommandResultValidation.None)
+                .WithStandardOutputPipe(stdOutPipe)
+                .WithStandardErrorPipe(stdErrPipe)
+                .ExecuteAsync(cancellationToken);
+
+            return result.ExitCode;
+        }
+
+        private static async Task PumpAsync(Stream stream, Func<string, Task> write, CancellationToken cancellationToken)
+        {
+            using var reader = new StreamReader(stream);
+            var buffer = new char[8192];
+            int read;
+            while ((read = await reader.ReadAsync(buffer, cancellationToken)) > 0)
+                await write(new string(buffer, 0, read));
+        }
     }
 }
